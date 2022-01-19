@@ -7,8 +7,12 @@
  */
 int sum_card(int **score_card, int size) {
     // TODO: write the body of sum_card according to its description.
+    int amt = 0;
+    for (int i = 0; i < size; i++){
+        amt += *score_card[i];
+    }
+    return amt;
 }
-
 
 /*
  * NOTE: don't change the main function!

@@ -13,6 +13,13 @@
  * $ ./invest 10000 1.05
  * 10500.00
  */
+void invest(double *principlePt, double rate){
+
+    double finalAmt = *principlePt * rate;
+
+    *principlePt = finalAmt;
+}
+
 int main(int argc, char **argv) {
     // Read in the command-line arguments and convert the strings to doubles
     double principal = strtod(argv[1], NULL);

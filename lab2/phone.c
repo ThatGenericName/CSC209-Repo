@@ -5,8 +5,8 @@ int main(int argc, char **argv) {
 
     char phone[11];
     int op;
-
-    scanf("%s %d", phone, &op);
+    int succ;
+    succ = scanf("%s %d", phone, &op);
 
     if (op == -1){
         printf("%s\n", phone);
@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     else if (op >= 0  && op <= 9){
         printf("%c\n", phone[op]);
     }
-    else{
+    else if (succ == 2){
         printf("ERROR\n");
     }
 

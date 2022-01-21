@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
                 printf("%c\n", phone[op]);
             }
             else{
-                printf("ERROR");
+                printf("ERROR\n");
             }
         }
         else{
@@ -41,9 +41,7 @@ int main(int argc, char **argv) {
             */
             char junk[256];
             scanf("%s", junk);
-            printf("ERROR");
         }
     }
-
     return 0;
 }

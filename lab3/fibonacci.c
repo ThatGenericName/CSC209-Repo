@@ -16,6 +16,10 @@
 
 /* Write your solution here */
 
+int fib1 = 0;
+int fib2 = 1;
+
+void fib(int** array, int size);
 
 int main(int argc, char **argv) {
     /* do not change this main function */
@@ -28,4 +32,27 @@ int main(int argc, char **argv) {
     }
     free(fib_sequence);
     return 0;
+}
+
+void fib(int** array, int size){
+    int* newArray = malloc(sizeof(int) * size);
+
+    switch (size){
+        case 0:
+            break;
+        case 1:
+            newArray[0] = fib1;
+            break;
+        default:
+            newArray[0] = fib1;
+            newArray[1] = fib2;
+            break;
+    }
+
+    for (int i = 2; i < size; i++)
+    {
+        newArray[i] = newArray[i - 1] + newArray [i - 2];
+    }
+    
+    *array = newArray;
 }

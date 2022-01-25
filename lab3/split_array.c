@@ -11,8 +11,26 @@
    division.
 */
 int **split_array(const int *s, int length) {
+	int arr2Length = length / 2;
+	int arr1Length = length - arr2Length;
+
+	int* arr1 = malloc(sizeof(int) * arr1Length);
+	int* arr2 = malloc(sizeof(int) * arr2Length);
+
+	for (int i = 0; i < arr1Length; i++)
+	{
+	arr1[i] = s[2 * i];
+	}
+	for (int i = 0; i < arr2Length; i++){
+	arr2[i] = s[(2 * i) + 1];
+	}
 
 
+	int** arrs = malloc(sizeof(int*) * 2);
+	arrs[0] = arr1;
+	arrs[1] = arr2;
+
+	return arrs;
 }
 
 /* Return a pointer to an array of ints with size elements.
@@ -22,8 +40,15 @@ int **split_array(const int *s, int length) {
  */
 
 int *build_array(char **strs, int size) {
+	int* arr = malloc(sizeof(int) * size);
 
+	for (int i = 0; i < size; i++)
+	{
+		int item = strtol(strs[i], NULL, 10);
+		arr[i] = item;
+	}
 
+	return arr;
 }
 
 
@@ -32,8 +57,8 @@ int main(int argc, char **argv) {
        arguments.  Do not add any additional lines of code to the main
        function or make other changes.
      */
-    int *full_array = build_array(/* fill in the arguments*/);
-    int **result = split_array(full_array, /* fill in this argument */);
+    int *full_array = build_array(argv + 1, argc - 1);
+    int **result = split_array(full_array, argc - 1);
 
     printf("Original array:\n");
     for (int i = 0; i < argc - 1; i++) {

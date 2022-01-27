@@ -25,7 +25,6 @@ int **split_array(const int *s, int length) {
 	arr2[i] = s[(2 * i) + 1];
 	}
 
-
 	int** arrs = malloc(sizeof(int*) * 2);
 	arrs[0] = arr1;
 	arrs[1] = arr2;

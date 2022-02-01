@@ -144,13 +144,12 @@ void generate_molecules_from_file(char* filename)
         char* sequence = malloc(sizeof(char) * seqLength + 1);
         if (fgets(sequence, seqLength + 1, file) != NULL){
             int mode = 0;
-
+            // this might be the dumbest loop ive ever done.
+            // if fscanf fails to match, for example, due to the fact that theres a letter there beacuse theres too many characters in the sequence,
+            // the entire stream (buffer?) strokes out and goes straight to eof, and so I have to
             char next = getc(file);
             if (next != ' '){
                 while (!(next == '\n' || next == 0)){
-                    if (next == 0){
-                        break;
-                    }
                     next = getc(file);
                 }
             }
@@ -184,16 +183,16 @@ void complement(char* sequence, int seqLength){
     {
         switch(sequence[i]){
             case 'A':
-                sequence[i] = 'G';
-                break;
-            case 'T':
-                sequence[i] = 'C';
-                break;
-            case 'C':
                 sequence[i] = 'T';
                 break;
-            case 'G': 
+            case 'T':
                 sequence[i] = 'A';
+                break;
+            case 'C':
+                sequence[i] = 'G';
+                break;
+            case 'G': 
+                sequence[i] = 'C';
                 break;
         }
     }    
@@ -206,6 +205,7 @@ void reverse(char* sequence, int sequenceLength){
     for (int i = sequenceLength - 1; i >= 0; i--)
     {
         newSequence[counter] = sequence[i];
+        counter++;
     }
     for (int i = 0; i < sequenceLength; i++)
     {

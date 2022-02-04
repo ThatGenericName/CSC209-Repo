@@ -28,6 +28,7 @@
 
 // Write the function strip_q_marks here
 
+int strip_q_marks(char* string);
 
 int main(int argc, char **argv) {
     // Do not change this main function.
@@ -38,4 +39,34 @@ int main(int argc, char **argv) {
     int result = strip_q_marks(argv[1]);
     printf("%s %d\n", argv[1], result);
     return 0;
+}
+
+
+int strip_q_marks(char* string){
+    int len = strlen(string);
+
+    int endQMarkStart = 0;
+    int endSeg = 0;
+
+    for (int i = 0; i < len; i++)
+    {
+        if (string[i] == '?'){
+            if (!endSeg){
+                endQMarkStart = i;
+                endSeg = 1;
+            }
+        } else {
+            endSeg = 0;
+        }
+    }
+
+    if (endSeg){
+        string[endQMarkStart] = '\0';
+        return len - endQMarkStart;
+    }
+    else{
+        return 0;
+    }
+    
+    
 }

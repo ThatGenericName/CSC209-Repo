@@ -10,8 +10,21 @@
  * Return a pointer to the newly created constraints struct.
  */
 struct constraints *init_constraints() {
-    // TODO - Remember to update return statement
-    return c;
+    struct constraints *newConstraints;
+    newConstraints = malloc(sizeof(struct constraints));
+
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        newConstraints -> cannot_be[i] = 0;
+    }
+    for (int i = 0; i < WORDLEN; i++){
+        // might replace this with a loop that just sets everything to the null terminator, I'm not too sure the specs for this part of the assignment.
+        strncpy(newConstraints -> must_be[i], "", SIZE);
+    }
+
+    //TODO: check back later if "must_be" constraint should be setup
+    
+    return newConstraints;
 }
 
 /* Update the "must_be" field at "index" to be a string 

@@ -13,11 +13,18 @@
  */
 
 char *copy(char *dest, const char *src, int capacity) {
+
+    // Note, in following the above hints, i found that "man strncpy" gives an implementation of strncpy, which is similar to the bottom.
+    // The difference here is that instead of the first loop ending when i becomes capacity - 1, it ends 1 iteration earlier to not copy the
+    // last character of the string if it is equal or greater than the capacity of the destination.
     int i;
-    for (i = 0; i < capacity - 1; i++)
+    for (i = 0; i < capacity - 1 && src[i] != '\0'; i++)
     {
         dest[i] = src[i];
     }
+
+    // This second loop starts where i ends, and fills the rest of the string with null terminators. If the string length is equal or greator than
+    // the destination array, then the last character of the array is set to the null terminator.
     for (; i < capacity; i++){
         dest[i] = '\0';
     }

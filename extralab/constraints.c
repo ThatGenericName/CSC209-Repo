@@ -19,6 +19,7 @@ struct constraints *init_constraints() {
     }
     for (int i = 0; i < WORDLEN; i++){
         // might replace this with a loop that just sets everything to the null terminator, I'm not too sure the specs for this part of the assignment.
+        // though copying an empty string to another string in theory does just that.
         strncpy(newConstraints -> must_be[i], "", SIZE);
     }
 
@@ -35,8 +36,12 @@ struct constraints *init_constraints() {
 void set_green(char letter, int index, struct constraints *con) {
     assert(islower(letter));
     assert(index >= 0 && index < SIZE);
-    
-    // TODO
+
+    con -> must_be[index][0] = letter;
+    for (int i = 1; i < SIZE; i++)
+    {
+        con -> must_be[index][i] = '\0';
+    }
 }
 
 /* Update "con" by adding the possible letters to the string at the must_be 
@@ -60,7 +65,57 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
     assert(strlen(next_tiles) == WORDLEN);
     assert(strlen(word) == WORDLEN);
 
-    // TODO
+    char possCharSet[ALPHABET_SIZE];
+    char impossCharSet[ALPHABET_SIZE];
+
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        possCharSet[i] = 0;
+        impossCharSet[i] = 0;
+    }
+
+    for (int i = 0; i < WORDLEN; i++)
+    {
+        if (i == index){
+            if (next_tiles[index] == 'g'){
+                if (cur_tiles[index] == 'y'){
+                    impossCharSet[word[index] - 'a'] = 1;
+                }
+            }
+        }
+        else{
+            if (next_tiles[i] == 'g'){
+                if (cur_tiles[i] != 'g'){
+                    possCharSet[word[i] - 'a'] = 1;
+                }
+                if (cur_tiles[i] == 'g'){
+                    impossCharSet[word[i] - 'a'] = 1;
+                }
+            }
+            else if (next_tiles[i] == 'y'){
+                possCharSet[word[i] - 'a'] = 1;
+            }
+        }
+
+    }
+
+    char mustBeStr[SIZE];
+    int mustBeStrInc = 0;
+
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        if (possCharSet[i] && !impossCharSet[i]){
+            mustBeStr[mustBeStrInc++] = i + 'a';
+        }
+    }
+    // filling the rest of mustBeStr with newlines in case there was garbage
+    // data in it beforehand.
+    for (; mustBeStrInc < SIZE; mustBeStrInc++){
+        mustBeStr[mustBeStrInc] = '\0';
+    }
+
+    strncpy(con -> must_be[index], mustBeStr, SIZE);
+    
 }
 
 /* Add the letters from cur_word to the cannot_be field.
@@ -69,17 +124,39 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
 void add_to_cannot_be(char *cur_word, struct constraints *con) {
     assert(strlen(cur_word) <= WORDLEN);
 
-    // TODO
+    for (int i = 0; i < WORDLEN; i++)
+    {
+        con -> cannot_be[cur_word[i] - 'a'] = 1;
+    }
 }
 
 void print_constraints(struct constraints *c) {
     printf("cannot_be: ");
 
-    // TODO
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        if (c -> cannot_be[i]){
+            printf("%c ", i + 'a');
+        }
+    }
+    
     
     printf("\nmust_be\n");
 
-    // TODO
+    for (int i = 0; i < WORDLEN; i++)
+    {
+        printf("[%d]", i);
+        for (int n = 0; n < SIZE; n++)
+        {
+            if (c -> must_be[i][n] == '\0'){
+                break;
+            }
+            printf(" %c", c -> must_be[i][n]);
+        }
+        printf("\n");
+        
+    }
+    
 
     printf("\n");
 }

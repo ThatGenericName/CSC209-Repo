@@ -68,6 +68,7 @@ void print_dictionary(struct node *list) {
     struct node* current = list;
     while (current != NULL){
         printf("%s\n", current -> word);
+        current = current -> next;
     }
 }
 /* Free all of the dynamically allocated memory in the dictionary list 

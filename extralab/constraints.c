@@ -65,14 +65,15 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
     assert(strlen(next_tiles) == WORDLEN);
     assert(strlen(word) == WORDLEN);
 
-    char possCharSet[ALPHABET_SIZE];
     char impossCharSet[ALPHABET_SIZE];
 
     for (int i = 0; i < ALPHABET_SIZE; i++)
     {
-        possCharSet[i] = 0;
         impossCharSet[i] = 0;
     }
+
+    char mustBeStr[SIZE];
+    int mustBeStrInc = 0;
 
     for (int i = 0; i < WORDLEN; i++)
     {
@@ -86,28 +87,34 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
         else{
             if (next_tiles[i] == 'g'){
                 if (cur_tiles[i] != 'g'){
-                    possCharSet[word[i] - 'a'] = 1;
+                    mustBeStr[mustBeStrInc++] = word[i];
                 }
                 if (cur_tiles[i] == 'g'){
                     impossCharSet[word[i] - 'a'] = 1;
                 }
             }
             else if (next_tiles[i] == 'y'){
-                possCharSet[word[i] - 'a'] = 1;
+                mustBeStr[mustBeStrInc++] = word[i];
             }
         }
 
     }
 
-    char mustBeStr[SIZE];
-    int mustBeStrInc = 0;
-
-    for (int i = 0; i < ALPHABET_SIZE; i++)
+    for (int i = 0; i < SIZE && mustBeStr[i] != '\0';)
     {
-        if (possCharSet[i] && !impossCharSet[i]){
-            mustBeStr[mustBeStrInc++] = i + 'a';
+        if (impossCharSet[mustBeStr[i] - 'a']){
+            // really dumb shifting every character over by 1.
+            int n = i;
+            for (; n < SIZE - 1; n++)
+            {
+                mustBeStr[n] = mustBeStr[n + 1];
+            }
+            mustBeStr[n] = '\0';
         }
+        i++;
     }
+    
+
     // filling the rest of mustBeStr with newlines in case there was garbage
     // data in it beforehand.
     for (; mustBeStrInc < SIZE; mustBeStrInc++){

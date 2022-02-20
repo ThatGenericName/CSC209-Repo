@@ -65,7 +65,7 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
     assert(strlen(next_tiles) == WORDLEN);
     assert(strlen(word) == WORDLEN);
 
-    char impossCharSet[ALPHABET_SIZE];
+    int impossCharSet[ALPHABET_SIZE];
 
     for (int i = 0; i < ALPHABET_SIZE; i++)
     {
@@ -75,8 +75,18 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
     char mustBeStr[SIZE];
     int mustBeStrInc = 0;
 
+    // filling in mustBeStr with null terminators in case there was garbage
+    // data in it beforehand.
+    for (int i = 0; i < SIZE; i++)
+    {
+        mustBeStr[i] = '\0';
+    }
+
+    // Goes through the provided string following the rules layed out by the docstring
+
     for (int i = 0; i < WORDLEN; i++)
     {
+        // There are seperate rules for characters at the provided index.
         if (i == index){
             if (next_tiles[index] == 'g'){
                 if (cur_tiles[index] == 'y'){
@@ -97,13 +107,16 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
                 mustBeStr[mustBeStrInc++] = word[i];
             }
         }
-
     }
 
+    // goes through the list of collected characters from previous step.
+    // if the character is in the impossCharSet, it removes it from the array
+    // by shifting everything after it one step forwards, replaces the last
+    // element with a null terminator;
     for (int i = 0; i < SIZE && mustBeStr[i] != '\0';)
     {
         if (impossCharSet[mustBeStr[i] - 'a']){
-            // really dumb shifting every character over by 1.
+            
             int n = i;
             for (; n < SIZE - 1; n++)
             {
@@ -112,13 +125,6 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
             mustBeStr[n] = '\0';
         }
         i++;
-    }
-    
-
-    // filling the rest of mustBeStr with newlines in case there was garbage
-    // data in it beforehand.
-    for (; mustBeStrInc < SIZE; mustBeStrInc++){
-        mustBeStr[mustBeStrInc] = '\0';
     }
 
     strncpy(con -> must_be[index], mustBeStr, SIZE);

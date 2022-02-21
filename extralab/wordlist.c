@@ -34,6 +34,7 @@ struct node *read_list(char *filename) {
     strncpy(head -> word, stringTemp, 6);
     // assuming that removing the newline char, we are replacing it with the null terminator
     head -> word[5] = '\0';
+    head -> next = NULL;
     
     char _c = fgetc(wordFile);
 

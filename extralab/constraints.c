@@ -139,6 +139,9 @@ void add_to_cannot_be(char *cur_word, struct constraints *con) {
 
     for (int i = 0; i < WORDLEN; i++)
     {
+        if (cur_word[i] == '\0'){
+            break;
+        }
         con -> cannot_be[cur_word[i] - 'a'] = 1;
     }
 }
@@ -153,23 +156,18 @@ void print_constraints(struct constraints *c) {
         }
     }
     
-    
     printf("\nmust_be\n");
 
     for (int i = 0; i < WORDLEN; i++)
     {
-        printf("[%d]", i);
+        printf("[%d] ", i);
         for (int n = 0; n < SIZE; n++)
         {
             if (c -> must_be[i][n] == '\0'){
                 break;
             }
-            printf(" %c", c -> must_be[i][n]);
+            printf("%c ", c -> must_be[i][n]);
         }
         printf("\n");
-        
     }
-    
-
-    printf("\n");
 }

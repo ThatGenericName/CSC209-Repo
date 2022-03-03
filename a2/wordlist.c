@@ -16,18 +16,71 @@
  *   - Do proper error checking of fopen, fclose, fgets
  */
 struct node *read_list(char *filename) {
-    // TODO - Remember to update return statement
-    return NULL;
+
+    FILE *wordFile = fopen(filename, "r");
+
+    if (wordFile == NULL){
+        return NULL;
+    }
+
+    char stringTemp[6];
+    char* temp = fgets(stringTemp, 6, wordFile);
+    if (temp == NULL){
+        return NULL;
+    }
+
+    struct node *head = malloc(sizeof(struct node));
+
+    strncpy(head -> word, stringTemp, 6);
+    // assuming that removing the newline char, we are replacing it with the null terminator
+    head -> word[5] = '\0';
+    head -> next = NULL;
+    
+    char _c = fgetc(wordFile);
+
+    if (_c != '\n'){
+        ungetc(_c, wordFile);
+    }
+
+    while (fgets(stringTemp, 6, wordFile) != NULL){
+        struct node *newNode = malloc(sizeof(struct node));
+        newNode -> next = head;
+        strncpy(newNode -> word, stringTemp, 6);
+        newNode -> word[5] = '\0'; // assuming that removing the newline char, we are replacing it with the null terminator
+        head = newNode;
+        _c = fgetc(wordFile);
+        if (_c != '\n'){
+            ungetc(_c, wordFile);
+        }
+    }
+
+    int closeCheck = fclose(wordFile);
+
+    // not sure why we need to errorcheck fclose, we will be returning either way.
+    if (closeCheck == EOF){
+        return head;
+    }
+    return head;
 }
 
 /* Print the words in the linked-list list one per line
  */
 void print_dictionary(struct node *list) {
-    // TODO
+    struct node* current = list;
+    while (current != NULL){
+        printf("%s\n", current -> word);
+        current = current -> next;
+    }
 }
 /* Free all of the dynamically allocated memory in the dictionary list 
- */
+ */ 
 void free_dictionary(struct node *list) {
-    // TODO
+    struct node* current = list;
+    struct node* next;
+    while (current != NULL){
+        next = current -> next;
+        free(current);
+        current = next;
+    }
 }
 

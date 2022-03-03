@@ -10,9 +10,22 @@
  * Return a pointer to the newly created constraints struct.
  */
 struct constraints *init_constraints() {
-    // TODO - Remember to update return statement
+    struct constraints *newConstraints;
+    newConstraints = malloc(sizeof(struct constraints));
 
-    return NULL;
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        newConstraints -> cannot_be[i] = 0;
+    }
+    for (int i = 0; i < WORDLEN; i++){
+        // might replace this with a loop that just sets everything to the null terminator, I'm not too sure the specs for this part of the assignment.
+        // though copying an empty string to another string in theory does just that.
+        strncpy(newConstraints -> must_be[i], "", SIZE);
+    }
+
+    //TODO: check back later if "must_be" constraint should be setup
+    
+    return newConstraints;
 }
 
 /* Update the "must_be" field at "index" to be a string 
@@ -23,8 +36,12 @@ struct constraints *init_constraints() {
 void set_green(char letter, int index, struct constraints *con) {
     assert(islower(letter));
     assert(index >= 0 && index < SIZE);
-    
-    // TODO
+
+    con -> must_be[index][0] = letter;
+    for (int i = 1; i < SIZE; i++)
+    {
+        con -> must_be[index][i] = '\0';
+    }
 }
 
 /* Update "con" by adding the possible letters to the string at the must_be 
@@ -48,7 +65,70 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
     assert(strlen(next_tiles) == WORDLEN);
     assert(strlen(word) == WORDLEN);
 
-    // TODO
+    int impossCharSet[ALPHABET_SIZE];
+
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        impossCharSet[i] = 0;
+    }
+
+    char mustBeStr[SIZE];
+    int mustBeStrInc = 0;
+
+    // filling in mustBeStr with null terminators in case there was garbage
+    // data in it beforehand.
+    for (int i = 0; i < SIZE; i++)
+    {
+        mustBeStr[i] = '\0';
+    }
+
+    // Goes through the provided string following the rules layed out by the docstring
+
+    for (int i = 0; i < WORDLEN; i++)
+    {
+        // There are seperate rules for characters at the provided index.
+        if (i == index){
+            if (next_tiles[index] == 'g'){
+                if (cur_tiles[index] == 'y'){
+                    impossCharSet[word[index] - 'a'] = 1;
+                }
+            }
+        }
+        else{
+            if (next_tiles[i] == 'g'){
+                if (cur_tiles[i] != 'g'){
+                    mustBeStr[mustBeStrInc++] = word[i];
+                }
+                if (cur_tiles[i] == 'g'){
+                    impossCharSet[word[i] - 'a'] = 1;
+                }
+            }
+            else if (next_tiles[i] == 'y'){
+                mustBeStr[mustBeStrInc++] = word[i];
+            }
+        }
+    }
+
+    // goes through the list of collected characters from previous step.
+    // if the character is in the impossCharSet, it removes it from the array
+    // by shifting everything after it one step forwards, replaces the last
+    // element with a null terminator;
+    for (int i = 0; i < SIZE && mustBeStr[i] != '\0';)
+    {
+        if (impossCharSet[mustBeStr[i] - 'a']){
+            
+            int n = i;
+            for (; n < SIZE - 1; n++)
+            {
+                mustBeStr[n] = mustBeStr[n + 1];
+            }
+            mustBeStr[n] = '\0';
+        }
+        i++;
+    }
+
+    strncpy(con -> must_be[index], mustBeStr, SIZE);
+    
 }
 
 /* Add the letters from cur_word to the cannot_be field.
@@ -57,23 +137,46 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
 void add_to_cannot_be(char *cur_word, struct constraints *con) {
     assert(strlen(cur_word) <= WORDLEN);
 
-    // TODO
+    for (int i = 0; i < WORDLEN; i++)
+    {
+        if (cur_word[i] == '\0'){
+            break;
+        }
+        con -> cannot_be[cur_word[i] - 'a'] = 1;
+    }
 }
 
 void print_constraints(struct constraints *c) {
     printf("cannot_be: ");
 
-    // TODO
+    for (int i = 0; i < ALPHABET_SIZE; i++)
+    {
+        if (c -> cannot_be[i]){
+            printf("%c ", i + 'a');
+        }
+    }
     
     printf("\nmust_be\n");
 
-    // TODO
-
-    printf("\n");
+    for (int i = 0; i < WORDLEN; i++)
+    {
+        printf("[%d] ", i);
+        for (int n = 0; n < SIZE; n++)
+        {
+            if (c -> must_be[i][n] == '\0'){
+                break;
+            }
+            printf("%c ", c -> must_be[i][n]);
+        }
+        printf("\n");
+    }
 }
 
 /* Free all dynamically allocated memory pointed to by c
  */
 void free_constraints(struct constraints *c) {
-    // TODO
+    // Nothing in constraints should be dynamically allocated, so I'm not sure
+    // a function is being made instead of just calling c on the struct.
+
+    free(c);
 }

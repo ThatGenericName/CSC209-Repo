@@ -12,6 +12,7 @@
  */
 
 int verbose = 0;
+int recurIter = 0;
 
 int main(int argc, char **argv) {
 
@@ -22,6 +23,7 @@ int main(int argc, char **argv) {
     while((opt = getopt(argc, argv, "v")) != -1) {
         switch(opt) {
             case 'v':
+                printf("Using Verbose\n");
                 verbose = 1;
                 break;
             default:
@@ -36,12 +38,16 @@ int main(int argc, char **argv) {
         }      
     }
 
+    printf("finished init1\n");
+
     // 1. Get the list of words
     struct node *dict = read_list(DICT_FILE);
 
+    printf("starting wordle gen\n");
     // 2. Read in the wordle input
     struct wordle *w = create_wordle(fp);
     fclose(fp);
+    printf("wordle gen complete\n");
 
     // 3. Initialize the root node of the solver tree.  Use init_constraints()
     // to initialize the constraints struct for the root node.
@@ -60,5 +66,9 @@ int main(int argc, char **argv) {
 
     // 6. free all dynamically allocated memory
     // TODO - use the functions in the associated files.
+    free_dictionary(dict);
+    free_tree(word_tree);
+    free_wordle(w);
+
     return 0;
 }

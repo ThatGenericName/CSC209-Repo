@@ -16,8 +16,9 @@ struct wordle *create_wordle(FILE *fp) {
     char line[MAXLINE]; 
     w->num_rows = 0;
 
+    int i = 0;
+
     while(fgets(line, MAXLINE, fp ) != NULL) {
-        
         // remove the newline character(s) 
         char *ptr;
         if(((ptr = strchr(line, '\r')) != NULL) ||
@@ -28,6 +29,7 @@ struct wordle *create_wordle(FILE *fp) {
         strncpy(w->grid[w->num_rows], line, SIZE);
         w->grid[w->num_rows][SIZE - 1] = '\0';
         w->num_rows++;
+        i++;
     }
     return w;
 }
@@ -40,9 +42,40 @@ struct wordle *create_wordle(FILE *fp) {
  */
 struct solver_node *create_solver_node(struct constraints *con, char *word) {
 
-    // TODO - replace return statement when function is implemented
-    return NULL;
+    struct solver_node *solverNode = malloc(sizeof(struct solver_node));
+
+    if (con == NULL){
+        solverNode -> con = NULL;
+    }
+    else{
+        struct constraints constraintCpy = *con;
+        solverNode -> con = &constraintCpy;
+    }
+
+    // needs to be done or bad times;
+    solverNode -> next_sibling = NULL;
+    solverNode -> child_list = NULL;
+
+    strncpy(solverNode -> word, word, SIZE);
+
+    return solverNode;
 }
+
+/* Checks if str contains c;
+ * returns 1 if c is contained within str.
+ * assumes str is a proper string (is null terminated)
+ */
+int contains(char *str, char c){
+    int i = 0;
+    while (str[i] != '\0'){
+        if (str[i] == c){
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+
 
 /* Return 1 if "word" matches the constraints in "con" for the wordle "w".
  * Return 0 if it does not match
@@ -50,10 +83,47 @@ struct solver_node *create_solver_node(struct constraints *con, char *word) {
 int match_constraints(char *word, struct constraints *con, 
 struct wordle *w, int row) {
 
-    // TODO
+    int greens[26];
+    int yellows[26];
 
-    return 0;
+    for (int i = 0; i < 26; i++)
+    {
+        greens[i] = 0;
+        yellows[i] = 0;
+    }
+    
+    char* wordleGuessResult = w -> grid[row];
+
+    for (int i = 0; i < WORDLEN && word[i] != '\0'; i++){
+        if (con -> must_be[i][0] != '\0'){
+            if (!contains(con -> must_be[i], word[i])){
+                return 0;
+            }
+        }
+        else{
+            if (con -> cannot_be[word[i] - 'a']){
+                return 0;
+            }
+        }
+        // checks if the guess result is 'g' or 'y', check if the character in the guess
+        // has been seen before.
+        char g = wordleGuessResult[i];
+        switch (g) {
+        case 'y':
+            if (yellows[word[i] - 'a']++){
+                return 0;
+            }
+            break;
+        case 'g':
+            if (greens[word[i] - 'a']++){
+                return 0;
+            }
+            break;
+        }
+    }
+    return 1;
 }
+
 /* remove "letter" from "word"
  * "word" remains the same if "letter" is not in "word"
  */
@@ -82,15 +152,99 @@ void solve_subtree(int row, struct wordle *w,  struct node *dict,
         printf("Running solve_subtree: %d, %s\n", row, parent->word);
     }
 
-    // TODO
+    if (row == w->num_rows + 1){
+        //recursion base case, no more rows to process.
+        return;
+    }
+    else{
+        // expected process:
+        /*  1: Create Constraints for the current word (defined in solver_node)
+         *  2: Using those constraints, use match constraints to find words in dict that 
+         *     matches those constraints.
+         *  3: Use the word to create a new solver node. 
+         *  4: Solve the new solver node (recursion);
+        */  
+        // 1
+        // First create/update constraints by using the word in parent node.
 
-    // debugging suggestion, but you can choose how to use the verbose option
-    /*if(verbose) {
-        print_constraints(c);
-    } */
+        struct constraints *constraint = parent -> con;
+        char* word = parent -> word;
+        char* currentRowGuess = w -> grid[row];
+        char cannotBeCStr[6];
+        int cbcsIndex = 0;
+        for (int i = 0; i < WORDLEN; i++){
+            switch (currentRowGuess[i]){
+                case 'g':
+                    set_green(word[i], i, constraint);
+                    break;
+                case '-':
+                    cannotBeCStr[cbcsIndex++] = word[i];
+                    break;
+                case 'y':
+                    // if the row is 1, then the next tile from w will be the solution rather
+                    // than the next tile, therefore if we are at row 1, we need
+                    // to explicitly give it a tile that referrs to the solution.
+                    if (row == 1){
+                        set_yellow(i, currentRowGuess, "ggggg", word, constraint);
+                    }
+                    else{
+                        set_yellow(i, currentRowGuess, w -> grid[row - 1], word, constraint);
+                    }
+                default:
+                    break;
+            }
+        }   
+        cannotBeCStr[cbcsIndex] = '\0';
+        add_to_cannot_be(cannotBeCStr, constraint);
 
-    // TODO
+        // 2
+        // Now that the constraint has been built, loop through the dictionary to find words 
+        // that match
 
+        struct node *currWordNode = dict;
+        struct solver_node *currentChild = parent -> child_list;
+
+        while (currWordNode != NULL){
+            // if this while condition gives segmentation faults, it might be because the next
+            // pointer has not been NULL Initialized (assigned to NULL if not being used);
+
+            if (match_constraints(currWordNode -> word, constraint, w, row)){
+                // 3
+                // Word found, create a child node;
+
+                struct solver_node *childNode = malloc(sizeof(struct solver_node));
+                struct constraints *constraintCpy = malloc(sizeof(struct constraints));
+                *constraintCpy = *constraint; 
+
+                // this can be a source of bugs,
+                // in theory the compiler will automatically malloc
+                // the space needed.
+
+                childNode -> con = constraintCpy;
+                strncpy(childNode -> word, currWordNode -> word, SIZE); 
+                // Note: word in the provided solver_node is a hardcoded 6, this might cause 
+                // a buffer overflow if SIZE > 6
+
+                childNode -> next_sibling = NULL; //null initialize the pointer;
+                childNode -> child_list = NULL;
+
+                if (currentChild == NULL){
+                    if (parent -> child_list == NULL){
+                        parent -> child_list = childNode;
+                    }
+                    currentChild = childNode;
+                }
+                else{
+                    currentChild -> next_sibling = childNode;
+                    currentChild = currentChild -> next_sibling;
+                }
+
+                solve_subtree(row + 1, w, dict, childNode);
+            }
+            // advance currWordNode
+            currWordNode = currWordNode -> next;
+        }
+    }
 }
 
 /* Print to standard output all paths that are num_rows in length.
@@ -102,19 +256,54 @@ void solve_subtree(int row, struct wordle *w,  struct node *dict,
 
 void print_paths(struct solver_node *node, char **path, 
                  int level, int num_rows) {
+    // base - node is valid.
+    // base case 1: level == num_rows, print the path;
 
-    // TODO
-
+    if (level == num_rows){
+        path[level - 1] = node -> word;
+        int i = 0;
+        printf("%s ", path[i++]);
+        for (; i < num_rows; i++)
+        {
+            printf("-> %s ", path[i]);
+        }
+        printf("\n");
+    }
+    else{
+        // if the next child node is NULL, no point continuing. 
+        if (node -> child_list != NULL){
+            
+            path[level - 1] = node -> word;
+            
+            struct solver_node *currNode = node -> child_list;
+            // since the next child list is not null.
+            while (currNode != NULL){
+                print_paths(currNode, path, level + 1, num_rows);
+                currNode = currNode -> next_sibling;
+            }
+        }
+    }
 }
 
 /* Free all dynamically allocated memory pointed to from w.
  */ 
 void free_wordle(struct wordle *w){
-    // TODO
+    // as far as I can tell, nothing in the wordle struct is dynamically allocated.
+    free(w);
 }
 
 /* Free all dynamically allocated pointed to from node
  */
 void free_tree(struct solver_node *node){
-    // TODO
+    // recursive implementation, base case: node == NULL;
+
+    if (node == NULL){
+        return;
+    }
+    else{
+        free_constraints(node -> con);
+        free_tree(node -> next_sibling);
+        free_tree(node -> child_list);
+        free(node);
+    }
 }

@@ -83,6 +83,8 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
     }
 
     // Goes through the provided string following the rules layed out by the docstring
+    char cannotBeAdd[SIZE];
+    int cannotBeAddInd = 0;
 
     for (int i = 0; i < WORDLEN; i++)
     {
@@ -92,6 +94,9 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
                 if (cur_tiles[index] == 'y'){
                     impossCharSet[word[index] - 'a'] = 1;
                 }
+            }
+            else if (next_tiles[index] == '-'){
+                cannotBeAdd[cannotBeAddInd++] = word[i];
             }
         }
         else{
@@ -108,6 +113,7 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
             }
         }
     }
+    cannotBeAdd[cannotBeAddInd] = '\0';
 
     // goes through the list of collected characters from previous step.
     // if the character is in the impossCharSet, it removes it from the array
@@ -126,7 +132,7 @@ void set_yellow(int index, char *cur_tiles, char *next_tiles,
         }
         i++;
     }
-
+    add_to_cannot_be(cannotBeAdd, con);
     strncpy(con -> must_be[index], mustBeStr, SIZE);
     
 }

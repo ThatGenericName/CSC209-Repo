@@ -32,22 +32,24 @@ int main(int argc, char **argv) {
         }
     }
     if(optind < argc) {
-        if((fp = fopen(argv[optind], "r")) == NULL) {
+        if((fp = fopen(argv[optind], "r")) == NULL) { // "samples/input2"
             perror("fopen");
             exit(1);
         }      
     }
+    
+    verbose = 0;
 
-    printf("finished init1\n");
+    if (verbose) printf("finished init1\n");
 
     // 1. Get the list of words
     struct node *dict = read_list(DICT_FILE);
 
-    printf("starting wordle gen\n");
+    if (verbose) printf("starting wordle gen\n");
     // 2. Read in the wordle input
     struct wordle *w = create_wordle(fp);
     fclose(fp);
-    printf("wordle gen complete\n");
+    if (verbose) printf("wordle gen complete\n");
 
     // 3. Initialize the root node of the solver tree.  Use init_constraints()
     // to initialize the constraints struct for the root node.

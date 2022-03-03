@@ -83,13 +83,17 @@ int contains(char *str, char c){
 int match_constraints(char *word, struct constraints *con, 
 struct wordle *w, int row) {
 
-    int greens[26];
-    int yellows[26];
+    if (verbose && !strncmp("annex", word, WORDLEN)){
+        printf("test\n");
+    }
+
+    int seenLetters[26];
+    //int yellows[26];
 
     for (int i = 0; i < 26; i++)
     {
-        greens[i] = 0;
-        yellows[i] = 0;
+        seenLetters[i] = 0;
+        //yellows[i] = 0;
     }
     
     char* wordleGuessResult = w -> grid[row];
@@ -110,16 +114,27 @@ struct wordle *w, int row) {
         char g = wordleGuessResult[i];
         switch (g) {
         case 'y':
-            if (yellows[word[i] - 'a']++){
+            if (w -> grid[0][i] == word[i]){
                 return 0;
             }
-            break;
+            // if (yellows[word[i] - 'a']++){
+            //     return 0;
+            // }
+            // break;
         case 'g':
-            if (greens[word[i] - 'a']++){
+            if (seenLetters[word[i] - 'a']++){
                 return 0;
             }
             break;
+        default:
+            if (contains(w -> grid[0], word[i])){
+                return 0;
+            }
+            if (seenLetters[word[i] - 'a']){
+                return 0;
+            }
         }
+
     }
     return 1;
 }
@@ -152,7 +167,7 @@ void solve_subtree(int row, struct wordle *w,  struct node *dict,
         printf("Running solve_subtree: %d, %s\n", row, parent->word);
     }
 
-    if (row == w->num_rows + 1){
+    if (row == w->num_rows){
         //recursion base case, no more rows to process.
         return;
     }
@@ -166,6 +181,9 @@ void solve_subtree(int row, struct wordle *w,  struct node *dict,
         */  
         // 1
         // First create/update constraints by using the word in parent node.
+        if (!strncmp("dunce", parent -> word, SIZE)){
+            if (verbose) printf("reached dunce -> amino");
+        }
 
         struct constraints *constraint = parent -> con;
         char* word = parent -> word;
@@ -205,6 +223,13 @@ void solve_subtree(int row, struct wordle *w,  struct node *dict,
         struct solver_node *currentChild = parent -> child_list;
 
         while (currWordNode != NULL){
+            // debug stuff, If this is still here please ignore
+            if (!strncmp("amino", currWordNode -> word, SIZE)){
+                if (!strncmp("dunce", parent -> word, SIZE)){
+                    if (verbose) printf("reached dunce -> amino");
+                }
+            }
+
             // if this while condition gives segmentation faults, it might be because the next
             // pointer has not been NULL Initialized (assigned to NULL if not being used);
 
@@ -215,6 +240,11 @@ void solve_subtree(int row, struct wordle *w,  struct node *dict,
                 struct solver_node *childNode = malloc(sizeof(struct solver_node));
                 struct constraints *constraintCpy = malloc(sizeof(struct constraints));
                 *constraintCpy = *constraint; 
+
+                for (int n = 0; n < WORDLEN; n++)
+                {
+                    strncpy(constraintCpy -> must_be[n], "", SIZE);
+                }
 
                 // this can be a source of bugs,
                 // in theory the compiler will automatically malloc
@@ -265,7 +295,7 @@ void print_paths(struct solver_node *node, char **path,
         printf("%s ", path[i++]);
         for (; i < num_rows; i++)
         {
-            printf("-> %s ", path[i]);
+            printf("%s ", path[i]);
         }
         printf("\n");
     }

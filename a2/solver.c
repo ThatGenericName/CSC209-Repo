@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
         }
     }
     if(optind < argc) {
-        if((fp = fopen(argv[optind], "r")) == NULL) { // "samples/input2"
+        if((fp = fopen(argv[optind], "r")) == NULL) {
             perror("fopen");
             exit(1);
         }      

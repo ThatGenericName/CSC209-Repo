@@ -86,18 +86,13 @@ struct wordle *w, int row) {
     if (verbose && !strncmp("annex", word, WORDLEN)){
         printf("test\n");
     }
-
     int seenLetters[26];
-    //int yellows[26];
-
     for (int i = 0; i < 26; i++)
     {
         seenLetters[i] = 0;
-        //yellows[i] = 0;
     }
-    
-    char* wordleGuessResult = w -> grid[row];
 
+    char* wordleGuessResult = w -> grid[row];
     for (int i = 0; i < WORDLEN && word[i] != '\0'; i++){
         if (con -> must_be[i][0] != '\0'){
             if (!contains(con -> must_be[i], word[i])){
@@ -114,27 +109,23 @@ struct wordle *w, int row) {
         char g = wordleGuessResult[i];
         switch (g) {
         case 'y':
+            // if character is yellow, check that the solution word does not have
+            // that character at that spot.
             if (w -> grid[0][i] == word[i]){
                 return 0;
             }
-            // if (yellows[word[i] - 'a']++){
-            //     return 0;
-            // }
-            // break;
         case 'g':
             if (seenLetters[word[i] - 'a']++){
                 return 0;
             }
             break;
         default:
-            if (contains(w -> grid[0], word[i])){
-                return 0;
-            }
-            if (seenLetters[word[i] - 'a']){
+            // if character is grey, check that solution word does not include that
+            // character
+            if (contains(w -> grid[0], word[i]) || seenLetters[word[i] - 'a']){
                 return 0;
             }
         }
-
     }
     return 1;
 }

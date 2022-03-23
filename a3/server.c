@@ -82,6 +82,7 @@ int main(int argc, char** argv) {
             if (resource == NULL){
                 perror("malloc");
                 printServerError();
+                continue;
             }
             strncpy(resource, resStartPt, resLen);
             resource[resLen] = '\0';
@@ -91,6 +92,7 @@ int main(int argc, char** argv) {
             if (query == NULL){
                 perror("malloc");
                 printServerError();
+                continue;
             }
             strncpy(query, queryStartPt, queryLen);
             query[queryLen] = '\0';
@@ -191,25 +193,35 @@ int execute(char* resource, char* query, FILE* fp, char** result){
         }
         int stat;
         wait(&stat);
-        if (readRes == 0 && i == 0){
-            // no chunks were read and EOF was reached
-            if (WIFEXITED(stat)){
-                int childExitCode = WEXITSTATUS(stat);
-                if (childExitCode == 2){
+        int exitedNorm = WIFEXITED(stat);
+        int d2 = WIFSIGNALED(stat);
+        if (debug) printf("DEBUG: Exited: %d, Signalled: %d\n", exitedNorm, d2);
+        if (debug) fflush(stdout);
+        if (exitedNorm){
+            // exited normally
+            int exitCode = WEXITSTATUS(stat);
+            if (exitCode == 0){
+                // exited without error.
+                fullData[MAX_LENGTH] = '\0'; // in case for some reason the data doesnt null terminate.
+                *result = malloc(sizeof(char) * MAX_LENGTH + 1);
+                strncpy(*result, fullData, MAX_LENGTH);
+            }
+            else{
+                *result = NULL;
+                if (exitCode == 2){
+                    // resource not found
                     returnCode = 2;
                 }
                 else{
                     returnCode = 1;
                 }
+                close(printRedirect[0]);
             }
-            close(printRedirect[0]);
-            result = NULL;
         }
-        else{
-            fullData[MAX_LENGTH] = '\0';
-
-            *result = malloc(sizeof(char) * MAX_LENGTH + 1);
-            strncpy(*result, fullData, MAX_LENGTH);
+        else if (d2){
+            *result = NULL;
+            returnCode = 1;
+            close(printRedirect[0]);
         }
         memset(fullData, '\0', MAX_LENGTH); // stack memory shinanigans.
         return returnCode;

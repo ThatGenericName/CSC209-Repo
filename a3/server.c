@@ -152,13 +152,13 @@ int execute(char* resource, char* query, FILE* fp, char** result){
     else if (forkRes == 0){
         // child process
         // codes must be checked with wait and exit codes
+        close(printRedirect[0]); // child does not need read end of the fd;
         fclose(fp); // child process does not need the input stream;
         if (dup2(printRedirect[1], fileno(stdout)) == -1){
             perror("dup2");
             close(printRedirect[1]);
             exit(1); // 1 means server error
         }
-        close(printRedirect[0]); // child does not need read end of the fd;
         if (execl(resource + 1, resource + 1, NULL) == -1){
             perror("execl");
             close(printRedirect[1]);

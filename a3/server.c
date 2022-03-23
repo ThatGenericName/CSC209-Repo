@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
     FILE *fp = stdin; // default is to read from stdin
     // Parse command line options.
     // Whether verbose (debug) is used and the input file
+
     int opt;
     while((opt = getopt(argc, argv, "v")) != -1) {
         switch(opt) {
@@ -52,7 +53,8 @@ int main(int argc, char** argv) {
     // I then use a pipe the read the output of those programs (as it prints to stdout)
     // This also runs on a while loop
     char line[MAX_LINE];
-    int counter = 0;
+    int lineCounter = 0;
+    int requestCounter = 0;
     while (fgets(line, MAX_LINE, fp) != NULL){
         if (strncmp("GET ", line, 4) == 0){
             // this is a request line;
@@ -92,15 +94,14 @@ int main(int argc, char** argv) {
             }
             strncpy(query, queryStartPt, queryLen);
             query[queryLen] = '\0';
-            
-            if (debug) printf("resource: %s, query: %s\n", resource, query);
 
             // onto the running part
+            if (debug) printf("DEBUG: Request #%d: %s\n", requestCounter, line);
+            if (debug) printf("DEBUG: resource: %s, query %s\n", resource, query);
             char* result;
             int executeRes = execute(resource, query, fp, &result);
             if (executeRes){
                 if (executeRes == 2){
-                    
                     printError(resource);
                 }
                 else{
@@ -111,11 +112,14 @@ int main(int argc, char** argv) {
                 printResponse(result);
                 free(result);
             }
-
+            fflush(stdout);
             free(query);
             free(resource);
+            requestCounter++;
         }
+        lineCounter++;
     }
+    if(debug) printf("DEBUG: lines read: %d\n", lineCounter);
 
     if(fp != stdin) {
         if(fclose(fp) == EOF) {
@@ -149,12 +153,15 @@ int execute(char* resource, char* query, FILE* fp, char** result){
         fclose(fp); // child process does not need the input stream;
         if (dup2(printRedirect[1], fileno(stdout)) == -1){
             perror("dup2");
+            close(printRedirect[1]);
             exit(1); // 1 means server error
         }
         close(printRedirect[0]); // child does not need read end of the fd;
         if (execl(resource + 1, resource + 1, NULL) == -1){
             perror("execl");
+            close(printRedirect[1]);
             if (errno == ENOENT){
+                fclose(stdout); // desperation to solve issue
                 exit(2); // code 2 means resource doesnt exist
             }
             exit(1); 
@@ -174,12 +181,13 @@ int execute(char* resource, char* query, FILE* fp, char** result){
         memset(chunk, '\0', CHUNK_SIZE);
         int readRes = read(printRedirect[0], chunk, bytesToRead);
         int maxChunkNum = MAX_LENGTH / CHUNK_SIZE;
+
         while (readRes > 0 && i < maxChunkNum){
             strncpy(fullDataPtr, chunk, CHUNK_SIZE);
             fullDataPtr += CHUNK_SIZE;
-            i++;
             memset(chunk, '\0', CHUNK_SIZE);
             readRes = read(printRedirect[0], chunk, bytesToRead);
+            i++;
         }
         int stat;
         wait(&stat);
@@ -202,8 +210,8 @@ int execute(char* resource, char* query, FILE* fp, char** result){
 
             *result = malloc(sizeof(char) * MAX_LENGTH + 1);
             strncpy(*result, fullData, MAX_LENGTH);
-            memset(fullData, '\0', MAX_LENGTH);
         }
+        memset(fullData, '\0', MAX_LENGTH); // stack memory shinanigans.
         return returnCode;
     }
 }

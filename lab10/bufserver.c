@@ -14,10 +14,10 @@
 
 int find_network_newline(const char *buf, int n);
 
-
 int main() {
     // This line causes stdout not to be buffered.
     // Don't change this! Necessary for autotesting.
+
     setbuf(stdout, NULL);
 
     struct sockaddr_in *self = init_server_addr(PORT);
@@ -31,6 +31,7 @@ int main() {
 
         // Receive messages
         char buf[BUFSIZE] = {'\0'};
+        memset(buf, '\0', BUFSIZE);
         int inbuf = 0;           // How many bytes currently in buffer?
         int room = sizeof(buf);  // How many bytes remaining in buffer?
         char *after = buf;       // Pointer to position after the data in buf
@@ -38,10 +39,9 @@ int main() {
         int nbytes;
         while ((nbytes = read(fd, after, room)) > 0) {
             // Step 1: update inbuf (how many bytes were just added?)
-
+            inbuf += nbytes; // 1 char should be 1 byte
 
             int where;
-
             // Step 2: the loop condition below calls find_network_newline
             // to determine if a full line has been read from the client.
             // Your next task should be to implement find_network_newline
@@ -57,7 +57,8 @@ int main() {
                 // using print statement below.
                 // Be sure to put a '\0' in the correct place first;
                 // otherwise you'll get junk in the output.
-
+                buf[where - 2] = '\0';
+                buf[where - 1] = '\0';
 
                 printf("Next message: %s\n", buf);
                 // Note that we could have also used write to avoid having to
@@ -65,16 +66,17 @@ int main() {
 
                 // Step 4: update inbuf and remove the full line from the buffer
                 // There might be stuff after the line, so don't just do inbuf = 0.
-
+                memset(buf, '\0', where);
                 // You want to move the stuff after the full line to the beginning
                 // of the buffer.  A loop can do it, or you can use memmove.
-                // memmove(destination, source, number_of_bytes)
-
+                memmove(buf, &buf[where], inbuf - where);
+                inbuf = inbuf - where;
 
             }
             // Step 5: update after and room, in preparation for the next read.
-
-
+            
+            room = BUFSIZE - inbuf;
+            after = &buf[inbuf];
         }
         close(fd);
         printf("The connection is now closed ...\n");
@@ -91,8 +93,19 @@ int main() {
  * Return one plus the index of the '\n' of the first network newline,
  * or -1 if no network newline is found. The return value is the index into buf
  * where the current line ends.
- * Definitely do not use strchr or other string functions to search here. (Why not?)
+ * Definitely do not use strchr or other string functions to search here. (Why not?) 
+ * // buffer overflow issues? strchr requires a terminator ('/0') to perform
  */
 int find_network_newline(const char *buf, int n) {
+    for (int i = 0; i < n; i++)
+    {
+        if (buf[i] == '\n'){
+            return i + 1;
+        }
+        if (buf[i] == '\0'){
+            return -1;
+        }
+    }
+    
     return -1;
 }

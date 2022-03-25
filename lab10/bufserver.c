@@ -71,7 +71,6 @@ int main() {
                 // of the buffer.  A loop can do it, or you can use memmove.
                 memmove(buf, &buf[where], inbuf - where);
                 inbuf = inbuf - where;
-
             }
             // Step 5: update after and room, in preparation for the next read.
             

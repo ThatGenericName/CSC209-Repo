@@ -56,32 +56,51 @@ int main(void) {
 	/* Task 3: Monitor stdin and the socket using select to avoid blocking
 	 * on either one.
 	 */
+    
+    fd_set allFDs;
+    FD_ZERO(&allFDs);
+    FD_SET(0, &allFDs); // stdin fd should be 0
+    FD_SET(sock_fd, &allFDs);
+    int maxFD = sock_fd;
 	 
     // Read input from the user, send it to the server, and then accept the
     // echo that returns. Exit when stdin is closed.
     while (1) {
-        int num_read = read(STDIN_FILENO, buf, BUF_SIZE);
-        if (num_read == 0) {
-            break;
-        }
-        buf[num_read] = '\0';
+        fd_set listenFDs = allFDs;
 
-        /*
-         * We should really send "\r\n" too, so the server can identify partial
-         * reads, but you are not required to handle partial reads in this lab.
-         */
-        if (write(sock_fd, buf, num_read) != num_read) {
-            perror("client: write");
-            close(sock_fd);
+        if (select(maxFD + 1, &listenFDs, NULL, NULL, NULL) == -1){
+            perror("select");
             exit(1);
         }
 
-        num_read = read(sock_fd, buf, BUF_SIZE);
-        if (num_read == 0) {
-            break;
+        // there are only 2 fds we need to watch so an if/elseif should be fine.
+
+        if (FD_ISSET(0, &listenFDs)){
+            // there is STDIN stuff to be read.
+                int num_read = read(STDIN_FILENO, buf, BUF_SIZE);
+            if (num_read == 0) {
+                break;
+            }
+            buf[num_read] = '\0';
+            if (write(sock_fd, buf, num_read) != num_read) {
+                perror("client: write");
+                close(sock_fd);
+                exit(1);
+            }
         }
-        buf[num_read] = '\0';
-        printf("[Server] %s", buf);
+        else if (FD_ISSET(sock_fd, &listenFDs)){
+            /*
+             * We should really send "\r\n" too, so the server can identify partial
+             * reads, but you are not required to handle partial reads in this lab.
+             */
+
+            num_read = read(sock_fd, buf, BUF_SIZE);
+            if (num_read == 0) {
+                break;
+            }
+            buf[num_read] = '\0';
+            printf("[Server] %s", buf);
+        }
     }
 
     close(sock_fd);

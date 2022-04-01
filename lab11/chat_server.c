@@ -76,7 +76,7 @@ int read_from(int client_index, struct sockname *users) {
     if (num_read == 0 || write(fd, buf, strlen(buf)) != strlen(buf)) {
         users[client_index].sock_fd = -1;
         // maybe do smtg to free username, otherwise theres going to be a memory leak.
-        // if (users[client_index].username != NULL) free(users[client_index].username);
+        if (users[client_index].username != NULL) free(users[client_index].username);
         // something like that.
         return fd;
     }

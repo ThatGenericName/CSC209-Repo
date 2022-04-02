@@ -91,16 +91,14 @@ int read_from(int client_index, struct sockname *users) {
     else{ // Username Exists.
         for (int i = 0; i < MAX_CONNECTIONS; i++)
         {
-            if (i != client_index && users[i].sock_fd != -1){ // Not the client that sent the message, echo it this client.
-                char sendBuf[BUF_SIZE + 1];
-                int uNameLen = strnlen(users[client_index].username, BUF_SIZE);
-                strncpy(sendBuf, users[client_index].username, uNameLen);
-                sendBuf[uNameLen] = ':';
-                // There is a problem with the above code: Part of the message won't be echoed if it's a very long one as the buffer
-                // needs space for the username. This can be fixed by sending the username as a seperate write operation.
-                strncpy(&sendBuf[uNameLen + 1], buf, BUF_SIZE - uNameLen);
-                write(users[i].sock_fd, sendBuf, BUF_SIZE);
-            }
+            char sendBuf[BUF_SIZE + 1];
+            int uNameLen = strnlen(users[client_index].username, BUF_SIZE);
+            strncpy(sendBuf, users[client_index].username, uNameLen);
+            sendBuf[uNameLen] = ':';
+            // There is a problem with the above code: Part of the message won't be echoed if it's a very long one as the buffer
+            // needs space for the username. This can be fixed by sending the username as a seperate write operation.
+            strncpy(&sendBuf[uNameLen + 1], buf, BUF_SIZE - uNameLen);
+            write(users[i].sock_fd, sendBuf, BUF_SIZE);
         }
     }
 

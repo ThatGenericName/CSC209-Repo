@@ -59,7 +59,7 @@ int main(void) {
     
     fd_set allFDs;
     FD_ZERO(&allFDs);
-    FD_SET(0, &allFDs); // stdin fd should be 0
+    FD_SET(STDIN_FILENO, &allFDs); // stdin fd should be 0
     FD_SET(sock_fd, &allFDs);
     int maxFD = sock_fd;
 	 
@@ -75,7 +75,7 @@ int main(void) {
 
         // there are only 2 fds we need to watch so an if/elseif should be fine.
 
-        if (FD_ISSET(0, &listenFDs)){
+        if (FD_ISSET(STDIN_FILENO, &listenFDs)){
             // there is STDIN stuff to be read.
                 int num_read = read(STDIN_FILENO, buf, BUF_SIZE);
             if (num_read == 0) {
